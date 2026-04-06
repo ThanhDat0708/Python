@@ -17,15 +17,18 @@ def create_individual(size):
 	return [random.randint(0, size - 1) for _ in range(size)]
 # Mỗi cá thể được tạo ra là một danh sách có độ dài bằng số lượng quân hậu (size), trong đó mỗi phần tử đại diện cho vị trí cột của quân hậu trên hàng tương ứng. 
 # lặp lại size lần để tạo ra một cá thể hoàn chỉnh, mỗi lần chọn ngẫu nhiên một cột từ 0 đến size-1 cho quân hậu trên hàng đó.
+# random.randint(0, size - 1) sinh số ngẫu nhiên từ 0 đến size - 1, tính cả hai đầu.
+# for _ in range(size) không phải là “chạy random đến khi bằng kích thước”, mà là lặp đúng size lần.
+# Mỗi lần lặp sẽ sinh ra 1 số ngẫu nhiên, nên kết quả cuối cùng là một danh sách có đúng size phần tử.
 
 
-
+# fitness hàm đánh giá chất lượng của một cá thể trong quần thể. Giá trị fitness càng cao thì cá thể càng tốt, với giá trị tối đa là max_pairs khi không có cặp quân hậu nào tấn công nhau.
 def fitness(individual):
 	"""Giá trị càng cao càng tốt. Fitness tối đa là n*(n-1)/2 khi không có cặp quân hậu nào tấn công nhau."""
 	n = len(individual)
 	# số quân hậu, kích thước của bàn cờ
 	max_pairs = n * (n - 1) // 2
-	# số cặp quân hậu tối đa xó thể có trên bàn cờ
+	# số cặp quân hậu tối đa có thể có trên bàn cờ tính độ tối đa khi quân hậu không chạm nhau thì fitness bằng mã_pari
 	conflicts = 0
 	# biến đếm số cặp quân hậu tấn công nhau được khởi tạo bằng 0 và sẽ được tăng lên mỗi khi tìm thấy một cặp quân hậu tấn công nhau.
 
@@ -41,6 +44,7 @@ def fitness(individual):
 			# kiểm tra nếu hai quân hậu nằm trên cùng một đường chéo bằng cách so sánh độ lệch cột với độ lệch hàng
 			if same_column or same_diagonal:
 				conflicts += 1
+				# nếu cùng cột hoặc cùng đường chéo thì tăng biến đếm số cặp tấn công lên 1
 				# nếu hai quân hậu tấn công nhau, tăng biến đếm số cặp tấn công lên 1 
 
 	return max_pairs - conflicts
@@ -51,17 +55,25 @@ def fitness(individual):
 def tournament_selection(population, k=DEFAULT_TOURNAMENT_SIZE):
 	"""Chon ca the tot nhat trong so k ca the duoc lay ngau nhien."""
 	k = min(k, len(population))
+	# đặt lại giá trị k để đảm bảo nó không lớn hơn kích thước của quần thể, tránh lỗi khi chọn ngẫu nhiên.
 	candidates = random.sample(population, k)
+	# lấy ngấu nhiên số cá thể từ quân thể bằng random.sample để cá thể không bị trùng lặp, đảm bảo sự đa dạng trong lựa chọn.
 	return max(candidates, key=fitness)
+# hàm này chọn ngẫu nhiên k cá thể từ quần thể và trả về cá thể có giá trị fitness cao nhất trong số đó. Đây là một phương pháp chọn lọc phổ biến trong thuật toán di truyền, giúp duy trì sự đa dạng trong quần thể đồng thời thúc đẩy sự tiến hóa hướng tới các giải pháp tốt hơn.	
 
 
 def crossover(parent1, parent2):
-	"""Lai ghep tai mot diem."""
+	"""Lai ghep tai mot diem để tạo ra một cá thể con."""
 	n = len(parent1)
+	# lấy độ dài của quân hậu để xác định kích thước của cá thể quân hậu còn lại và điểm lai ghép.
 	point = random.randint(1, n - 1)
+	# chọn ngẫu nhiên một điểm lai ghép từ 1 đến n-1 để đảm bảo rằng cả hai phần của cá thể con đều có ít nhất một gene từ mỗi cha mẹ.
 	child1 = parent1[:point] + parent2[point:]
+	# tạo ra cá thể con đầu tiên bằng cách kết hợp phần đầu của parent1 với phần cuối của parent2 tại điểm lai ghép đã chọn.
 	child2 = parent2[:point] + parent1[point:]
+	# tạo ra cá thể con thứ hai bằng cách kết hợp phần đầu của parent2 với phần cuối của parent1 tại cùng điểm lai ghép.
 	return child1, child2
+# hàm crossover này thực hiện lai ghép một điểm (one-point crossover) giữa hai cá thể cha mẹ để tạo ra hai cá thể con. Điểm lai ghép được chọn ngẫu nhiên, và sau đó các phần của cha mẹ được kết hợp để tạo ra con cái mới. Đây là một phương pháp lai ghép đơn giản nhưng hiệu quả trong thuật toán di truyền, giúp tạo ra sự đa dạng trong quần thể và khám phá không gian giải pháp.
 
 
 def mutate(individual, mutation_rate=DEFAULT_MUTATION_RATE):
