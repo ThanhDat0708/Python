@@ -1,0 +1,1 @@
+print("Day la noi dung file test.py")
